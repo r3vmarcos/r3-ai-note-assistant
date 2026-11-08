@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prévia do menu — R3 Gemini</title>
+<!-- CSS oficial do Obsidian (extraído do obsidian.asar instalado) e CSS real do plugin -->
+<link rel="stylesheet" href="vendor/obsidian-app.css">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* Só o necessário para simular a janela do Obsidian. Não altera o tema. */
+  html, body { height: 100%; margin: 0; }
+  .app-container { height: 100vh; display: flex; }
+  .workspace { flex: 1; min-width: 0; position: relative; }
+  .workspace-leaf-content { height: 100%; overflow: hidden; }
+  .markdown-source-view.mod-cm6 { height: 100%; overflow: auto; position: relative; }
+  .controles-previa {
+    position: fixed; right: 12px; bottom: 12px; z-index: 95;
+    display: flex; gap: 8px;
+  }
+  [hidden] { display: none !important; }
+  .aviso-previa {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 200;
+    padding: 8px 14px; border-radius: 8px; font-size: 13px;
+    background: var(--background-secondary); color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  }
+  /* O .cm-scroller do Obsidian é flex: o conteúdo precisa ocupar a largura, senão encolhe */
+  .cm-editor, .cm-scroller, .markdown-source-view.mod-cm6 { width: 100%; }
+  /* Mesma hierarquia do Obsidian (cm-scroller > cm-sizer > cm-contentContainer > cm-content).
+     O seletor precisa ser .markdown-source-view.mod-cm6 .cm-content para vencer o width: 0 do app.css */
+  .markdown-source-view.mod-cm6 .cm-content {
+    flex: 1 1 0; min-width: 0; width: 100%; box-sizing: border-box;
+    max-width: 720px; margin: 0 auto; padding: 60px 24px 160px;
+  }
+  .cm-line.inserido { border-left: 2px solid var(--interactive-accent); padding-left: 10px; }
+</style>
+</head>
+<body class="theme-light">
+
+<div class="app-container">
+  <div class="workspace">
+    <div class="workspace-leaf-content">
+      <!-- Ponto onde o plugin cria o menu (containerPai = .markdown-source-view.mod-cm6) -->
+      <div class="markdown-source-view mod-cm6" id="containerPai">
+        <div class="cm-editor">
+          <div class="cm-scroller">
+            <div class="cm-sizer">
+            <div class="cm-contentContainer">
+            <div class="cm-content" id="conteudo">
+              <div class="cm-line"><span class="cm-header cm-header-1">Reunião de planejamento do Q3</span></div>
+              <div class="cm-line">Revisamos o cronograma de entregas e identificamos três riscos principais: dependência da equipe de dados, atraso na aprovação do orçamento e a migração do serviço de autenticação.</div>
+              <div class="cm-line">Decidimos priorizar a migração antes da nova tela de relatórios, porque ela libera o time de infraestrutura para o restante do trimestre.</div>
+              <div class="cm-line">Próximos passos: validar com o financeiro até sexta-feira e definir responsáveis por cada risco.</div>
+            </div>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de pré-visualização (estrutura do Modal do Obsidian + classes de src/ui/preview-modal.ts) -->
+<div class="modal-container mod-dim" id="modal-preview" hidden>
+  <div class="modal-bg"></div>
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Pré-visualização da geração</div>
+    </div>
+    <div class="modal-content">
+      <div class="gemini-assistant-r3-preview-modal">
+        <p class="gemini-assistant-r3-preview-modal__descricao">Revise, ajuste e escolha como deseja inserir o conteúdo gerado.</p>
+        <div class="gemini-assistant-r3-preview-modal__meta">
+          <span class="gemini-assistant-r3-preview-modal__tag gemini-assistant-r3-preview-modal__tag--modelo" id="modal-modelo"></span>
+          <span class="gemini-assistant-r3-preview-modal__tag" id="modal-acao"></span>
+        </div>
+        <div class="gemini-assistant-r3-preview-modal__regenerar">
+          <span class="gemini-assistant-r3-preview-modal__rotulo">Pedido extra</span>
+          <input type="text" id="modal-pedido" placeholder="Ex.: mais formal">
+          <button id="modal-regenerar">Gerar de novo</button>
+        </div>
+        <textarea class="gemini-assistant-r3-preview-modal__texto" id="modal-texto"></textarea>
+        <div class="gemini-assistant-r3-preview-modal__contador" id="modal-contador"></div>
+        <div class="gemini-assistant-r3-preview-modal__acoes">
+          <span class="gemini-assistant-r3-preview-modal__dica">Ctrl+Enter insere</span>
+          <span class="gemini-assistant-r3-preview-modal__espaco"></span>
+          <button id="modal-cancelar">Cancelar</button>
+          <button class="mod-cta" id="modal-inserir">Inserir na nota</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="controles-previa">
+  <button id="btn-tema">Tema claro/escuro</button>
+</div>
+
+<script>
+(() => {
+  // ==CONSTANTES==
+  const CLS = 'gemini-assistant-r3-flutuante';
+  const MODELO = 'Gemini 2.5 Flash';
+  const GRUPO_PADRAO = 'resumir';
+  const TEMPO_GERACAO_MS = 1400;
+  // Versão do pacote lucide-static usada para os ícones (mesmo conjunto do setIcon do Obsidian)
+  const LUCIDE_URL = 'https://unpkg.com/lucide-static@0.460.0/icons/';
+
+  // ==DADOS== (espelham src/ui/menu-grupos.ts, src/comandos/editor-commands.ts e src/i18n/pt-BR.ts)
+  const GRUPOS = [
+    { id: 'gerar', nome: 'Gerar', icone: 'pen-line' },
+    { id: 'resumir', nome: 'Resumir', icone: 'list' },
+    { id: 'explicar', nome: 'Explicar', icone: 'lightbulb' },
+    { id: 'expandir', nome: 'Expandir', icone: 'maximize-2' },
+    { id: 'reescrever', nome: 'Reescrever', icone: 'shuffle' },
+    { id: 'responder', nome: 'Responder', icone: 'message-circle' },
+    { id: 'outros', nome: 'Outros', icone: 'terminal' }
+  ];
+  const NIVEIS = [
+    { id: 'resumido', curto: 'Resumido', rotulo: 'resumido' },
+    { id: 'padrao', curto: 'Padrão', rotulo: 'padrão' },
+    { id: 'expandido', curto: 'Expandido', rotulo: 'expandido' }
+  ];
+  const INTENCOES = [
+    { grupo: 'gerar', nomeAcao: 'Gerar conteúdo', exigeSelecao: false },
+    { grupo: 'resumir', nomeAcao: 'Resumir seleção', exigeSelecao: true },
+    { grupo: 'explicar', nomeAcao: 'Explicar seleção ou tema', exigeSelecao: false },
+    { grupo: 'expandir', nomeAcao: 'Expandir seleção', exigeSelecao: true },
+    { grupo: 'reescrever', nomeAcao: 'Reescrever seleção', exigeSelecao: true },
+    { grupo: 'responder', nomeAcao: 'Responder seleção', exigeSelecao: true }
+  ];
+  const ACOES = [
+    ...INTENCOES.flatMap((intencao) =>
+      NIVEIS.map((nivel) => ({
+        id: `${intencao.grupo}-${nivel.id}`,
+        grupo: intencao.grupo,
+        curto: nivel.curto,
+        nome: `${intencao.nomeAcao} (${nivel.rotulo})`,
+        exigeSelecao: intencao.exigeSelecao
+      }))
+    ),
+    { id: 'reescrever-corrigir', grupo: 'reescrever', curto: 'Corrigir gramática', nome: 'Corrigir gramática da seleção', exigeSelecao: true },
+    { id: 'outros-personalizado', grupo: 'outros', curto: 'Prompt personalizado', nome: 'Executar prompt personalizado', exigeSelecao: true }
+  ];
+  const ACOES_POR_ID = Object.fromEntries(ACOES.map((a) => [a.id, a]));
+
+  // ==ESTADOS==
+  const estado = {
+    aberto: false,
+    fixado: false,
+    executando: false,
+    grupoAberto: GRUPO_PADRAO,
+    favoritas: new Set(),
+    ultimaAcaoId: null,
+    desfazer: [],           // parágrafos inseridos pela prévia (pilha)
+    trechoSelecionado: '',  // último trecho selecionado dentro do editor
+    acaoPendente: null,
+    textoGerado: '',
+    timer: null
+  };
+
+  // ==REFERENCIAS==
+  const containerPai = document.getElementById('containerPai');
+  const conteudo = document.getElementById('conteudo');
+  const modal = document.getElementById('modal-preview');
+  const el = {};
+
+  // ==UTILITARIOS==
+  const normalizarBusca = (valor) => valor.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+  const bloco = (classe) => `${CLS}__${classe}`;
+  const criar = (tag, classes = '', texto = '') => {
+    const node = document.createElement(tag);
+    if (classes) node.className = classes;
+    if (texto) node.textContent = texto;
+    return node;
+  };
+
+  // Ícones: equivalente ao setIcon do Obsidian (SVG Lucide), carregado sob demanda
+  const cacheIcones = new Map();
+  function carregarIcone(nome) {
+    if (!cacheIcones.has(nome)) {
+      cacheIcones.set(nome, fetch(`${LUCIDE_URL}${nome}.svg`).then((r) => (r.ok ? r.text() : '')).catch(() => ''));
+    }
+    return cacheIcones.get(nome);
+  }
+  function setIcon(elemento, nome) {
+    carregarIcone(nome).then((svg) => {
+      if (!svg) return;
+      elemento.innerHTML = svg.replace('<svg ', '<svg class="svg-icon lucide-' + nome + '" ');
+    });
+  }
+
+  function aviso(mensagem) {
+    const div = criar('div', 'aviso-previa', mensagem);
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), 2200);
+  }
+
+  // ==FUNCOES==
+  // Monta o botão principal, os secundários e o menu (equivale a criarInterface)
+  function criarInterface() {
+    const raiz = criar('div', `${CLS} ${CLS}--direita ${CLS}--padrao`);
+    const barra = criar('div', bloco('barra'));
+    raiz.appendChild(barra);
+
+    el.botao = criar('button', bloco('botao'));
+    el.botao.type = 'button';
+    el.botao.setAttribute('aria-haspopup', 'menu');
+    el.botao.setAttribute('aria-expanded', 'false');
+    el.botao.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      if (!estado.executando) definirMenuAberto(!estado.aberto);
+    });
+    barra.appendChild(el.botao);
+
+    el.parar = criarBotaoIcone(barra, 'square', 'Parar geração', `${bloco('botao-secundario')} ${bloco('botao-secundario--perigo')} ${bloco('oculto')}`);
+    el.parar.addEventListener('click', (e) => { e.stopPropagation(); cancelarGeracao(); });
+
+    el.desfazer = criarBotaoIcone(barra, 'undo-2', 'Desfazer última geração', `${bloco('botao-secundario')} ${bloco('botao-desfazer')}`);
+    el.desfazer.addEventListener('click', (e) => { e.stopPropagation(); desfazerUltima(); });
+
+    el.menu = criar('div', `${bloco('menu')} ${bloco('menu--fechado')}`);
+    el.menu.setAttribute('role', 'menu');
+    el.menu.addEventListener('keydown', handleTecladoMenu);
+    raiz.appendChild(el.menu);
+    containerPai.appendChild(raiz);
+    el.raiz = raiz;
+    // Clicar no menu não tira a seleção da nota (campos de texto continuam funcionando)
+    raiz.addEventListener('mousedown', (e) => {
+      if (!(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) e.preventDefault();
+    });
+
+    criarCabecalho();
+    criarBusca();
+    el.selecao = criar('div', bloco('selecao'));
+    el.menu.appendChild(el.selecao);
+    criarLista();
+    el.vazio = criar('div', `${bloco('vazio')} ${bloco('oculto')}`, 'Nenhuma ação encontrada');
+    el.menu.appendChild(el.vazio);
+    criarCampoPedido();
+    criarRodape();
+
+    atualizarDesfazer();
+    atualizarBotaoPadrao();
+  }
+
+  function criarBotaoIcone(container, icone, rotulo, classes) {
+    const botao = criar('button', classes);
+    botao.type = 'button';
+    botao.setAttribute('aria-label', rotulo);
+    setIcon(botao, icone);
+    container.appendChild(botao);
+    return botao;
+  }
+
+  function criarCabecalho() {
+    const cab = criar('div', bloco('cabecalho'));
+    const titulo = criar('div', bloco('titulo'));
+    const iconeTitulo = criar('span', bloco('titulo-icone'));
+    setIcon(iconeTitulo, 'sparkles');
+    titulo.appendChild(iconeTitulo);
+    titulo.appendChild(criar('span', '', 'R3 AI Note Assistant'));
+    cab.appendChild(titulo);
+
+    const botaoFixar = criarBotaoIcone(cab, 'pin-off', 'Fixar menu aberto', bloco('fechar') + ' ' + bloco('fixar'));
+    botaoFixar.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      estado.fixado = !estado.fixado;
+      botaoFixar.classList.toggle(bloco('fixar--ativo'), estado.fixado);
+      botaoFixar.setAttribute('aria-pressed', String(estado.fixado));
+      botaoFixar.setAttribute('aria-label', estado.fixado ? 'Desafixar menu' : 'Fixar menu aberto');
+      botaoFixar.textContent = '';
+      setIcon(botaoFixar, estado.fixado ? 'pin' : 'pin-off');
+    });
+
+    const botaoConfiguracoes = criarBotaoIcone(cab, 'settings', 'CONFIGURAÇÕES DA I.A.', bloco('fechar'));
+    botaoConfiguracoes.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      definirMenuAberto(false);
+      window.open('preview-configuracoes.html#acoes', '_blank');
+    });
+
+    const tutorial = criarBotaoIcone(cab, 'circle-help', 'Tutorial', bloco('fechar'));
+    tutorial.addEventListener('click', (e) => { e.stopPropagation(); definirMenuAberto(false); aviso('Tutorial: abriria o modal de ajuda.'); });
+
+    const fechar = criarBotaoIcone(cab, 'x', 'Fechar', bloco('fechar'));
+    fechar.addEventListener('click', (e) => { e.stopPropagation(); definirMenuAberto(false); });
+
+    el.menu.appendChild(cab);
+  }
+
+  function criarBusca() {
+    const wrap = criar('div', bloco('busca'));
+    const icone = criar('span', bloco('busca-icone'));
+    setIcon(icone, 'search');
+    wrap.appendChild(icone);
+    el.busca = criar('input', bloco('busca-input'));
+    el.busca.type = 'text';
+    el.busca.placeholder = 'Buscar ação…';
+    el.busca.spellcheck = false;
+    el.busca.addEventListener('input', handleBusca);
+    wrap.appendChild(el.busca);
+    el.menu.appendChild(wrap);
+  }
+
+  // Lista: repetir última ação, favoritos e grupos
+  function criarLista() {
+    el.lista = criar('div', bloco('lista'));
+    el.menu.appendChild(el.lista);
+
+    el.ultima = criar('button', bloco('ultima'));
+    el.ultima.type = 'button';
+    el.ultima.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (estado.ultimaAcaoId) executarAcao(ACOES_POR_ID[estado.ultimaAcaoId]);
+    });
+    el.lista.appendChild(el.ultima);
+
+    el.secoes = [];
+    renderizarFavoritos();
+    for (const grupo of GRUPOS) renderizarGrupo(grupo);
+  }
+
+  function renderizarFavoritos() {
+    const acoes = [...estado.favoritas].map((id) => ACOES_POR_ID[id]).filter(Boolean);
+    if (acoes.length === 0) return;
+    const wrap = criar('div', bloco('favoritos'));
+    const titulo = criar('div', bloco('favoritos-titulo'));
+    const icone = criar('span');
+    setIcon(icone, 'star');
+    titulo.appendChild(icone);
+    titulo.appendChild(criar('span', '', 'Favoritos'));
+    wrap.appendChild(titulo);
+    const corpo = criar('div', bloco('favoritos-corpo'));
+    wrap.appendChild(corpo);
+    el.lista.appendChild(wrap);
+    const itens = acoes.map((acao) => renderizarItem(corpo, acao, true));
+    el.secoes.push({ id: 'favoritos', wrapper: wrap, cabecalho: null, itens });
+  }
+
+  function renderizarGrupo(grupo) {
+    const acoes = ACOES.filter((a) => a.grupo === grupo.id);
+    const wrap = criar('div', `${bloco('grupo')} ${bloco('grupo--' + grupo.id)}`);
+    const cab = criar('button', bloco('grupo-titulo'));
+    cab.type = 'button';
+    cab.setAttribute('aria-expanded', 'false');
+    const iconeGrupo = criar('span', bloco('grupo-icone'));
+    setIcon(iconeGrupo, grupo.icone);
+    cab.appendChild(iconeGrupo);
+    cab.appendChild(criar('span', bloco('grupo-nome'), grupo.nome));
+    cab.appendChild(criar('span', bloco('grupo-contador'), String(acoes.length)));
+    const seta = criar('span', bloco('grupo-seta'));
+    setIcon(seta, 'chevron-right');
+    cab.appendChild(seta);
+    cab.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      estado.grupoAberto = estado.grupoAberto === grupo.id ? null : grupo.id;
+      aplicarEstadoGrupos();
+    });
+    wrap.appendChild(cab);
+    const corpo = criar('div', bloco('grupo-corpo'));
+    wrap.appendChild(corpo);
+    el.lista.appendChild(wrap);
+    const itens = acoes.map((acao) => renderizarItem(corpo, acao, false));
+    el.secoes.push({ id: grupo.id, wrapper: wrap, cabecalho: cab, itens });
+  }
+
+  // Linha: botão da ação + estrela (favorito) + engrenagem (configurações da ação)
+  function renderizarItem(container, acao, emFavoritos) {
+    const favorita = estado.favoritas.has(acao.id);
+    const linha = criar('div', `${bloco('acao-linha')} ${bloco('grupo--' + acao.grupo)}`);
+    linha.classList.toggle(bloco('acao-linha--favorita'), favorita);
+
+    const botao = criar('button', bloco('acao'));
+    botao.type = 'button';
+    botao.setAttribute('role', 'menuitem');
+    botao.title = acao.nome;
+    botao.appendChild(criar('span', bloco('acao-nome'), emFavoritos ? acao.nome : acao.curto));
+    botao.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); executarAcao(acao); });
+    linha.appendChild(botao);
+
+    const estrela = criar('button', bloco('estrela'));
+    estrela.type = 'button';
+    estrela.tabIndex = -1;
+    estrela.setAttribute('aria-pressed', String(favorita));
+    estrela.setAttribute('aria-label', favorita ? 'Remover dos favoritos' : 'Adicionar aos favoritos');
+    setIcon(estrela, 'star');
+    estrela.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); alternarFavorito(acao.id); });
+    linha.appendChild(estrela);
+
+    const config = criar('button', bloco('config'));
+    config.type = 'button';
+    config.tabIndex = -1;
+    config.setAttribute('aria-label', 'Configurar esta ação');
+    setIcon(config, 'settings');
+    config.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      definirMenuAberto(false);
+      window.open('preview-configuracoes.html', '_blank');
+    });
+    linha.appendChild(config);
+
+    container.appendChild(linha);
+    return { acao, linha, botao, textoBusca: normalizarBusca(`${acao.curto} ${acao.nome} ${acao.grupo}`) };
+  }
+
+  // Recria favoritos e grupos mantendo busca e rolagem (handleAlternarFavorito)
+  function alternarFavorito(id) {
+    if (estado.favoritas.has(id)) estado.favoritas.delete(id); else estado.favoritas.add(id);
+    const termo = el.busca.value;
+    const rolagem = el.lista.scrollTop;
+    el.lista.remove();
+    criarLista();
+    el.menu.insertBefore(el.lista, el.vazio);
+    el.lista.scrollTop = rolagem;
+    el.busca.value = termo;
+    handleBusca();
+    atualizarUltimaAcao();
+    atualizarSelecao();
+    el.menu.classList.add(bloco('menu--aberto'));
+    el.menu.classList.remove(bloco('menu--fechado'));
+  }
+
+  function criarCampoPedido() {
+    const wrap = criar('div', bloco('pedido'));
+    el.pedido = criar('textarea', bloco('pedido-input'));
+    el.pedido.rows = 1;
+    el.pedido.placeholder = 'Peça algo à IA…';
+    el.pedido.setAttribute('aria-label', 'Pedir à IA');
+    el.pedido.addEventListener('input', ajustarAlturaPedido);
+    el.pedido.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarPedido(); }
+    });
+    wrap.appendChild(el.pedido);
+    const enviar = criarBotaoIcone(wrap, 'send-horizontal', 'Enviar pedido', bloco('pedido-enviar'));
+    enviar.addEventListener('click', (e) => { e.stopPropagation(); enviarPedido(); });
+    el.menu.appendChild(wrap);
+  }
+
+  function ajustarAlturaPedido() {
+    el.pedido.style.height = 'auto';
+    el.pedido.style.height = Math.min(el.pedido.scrollHeight, 120) + 'px';
+  }
+
+  function enviarPedido() {
+    const instrucao = el.pedido.value.trim();
+    if (!instrucao) { el.pedido.focus(); return; }
+    el.pedido.value = '';
+    ajustarAlturaPedido();
+    executarAcao(ACOES_POR_ID['outros-personalizado'], instrucao);
+  }
+
+  function criarRodape() {
+    const wrap = criar('div', bloco('rodape-acoes'));
+    wrap.appendChild(criar('div', bloco('rodape'), '↑↓ navegar · Enter executar · Esc fechar'));
+    const sobre = criar('button', bloco('botao-sobre'));
+    sobre.type = 'button';
+    const iconeSobre = criar('span', bloco('botao-sobre-icone'));
+    setIcon(iconeSobre, 'heart-handshake');
+    sobre.appendChild(iconeSobre);
+    sobre.appendChild(criar('span', '', 'Sobre o projeto'));
+    sobre.addEventListener('click', (e) => { e.stopPropagation(); definirMenuAberto(false); aviso('Sobre: abriria o modal do projeto.'); });
+    wrap.appendChild(sobre);
+    el.menu.appendChild(wrap);
+  }
+
+  // ==ESTADO DO MENU==
+  function definirMenuAberto(valor, aplicarGrupoInicial = true) {
+    estado.aberto = valor;
+    el.menu.classList.toggle(bloco('menu--aberto'), valor);
+    el.menu.classList.toggle(bloco('menu--fechado'), !valor);
+    el.botao.setAttribute('aria-expanded', String(valor));
+    if (!valor) return;
+
+    if (aplicarGrupoInicial) {
+      estado.grupoAberto = GRUPO_PADRAO;
+      el.busca.value = '';
+    }
+    handleBusca();
+    atualizarSelecao();
+    atualizarUltimaAcao();
+    setTimeout(() => el.busca.focus({ preventScroll: true }), 30);
+  }
+
+  function aplicarEstadoGrupos() {
+    const buscando = Boolean(el.busca.value.trim());
+    for (const secao of el.secoes) {
+      if (!secao.cabecalho) continue;
+      const abrir = buscando || secao.id === estado.grupoAberto;
+      secao.wrapper.classList.toggle(bloco('grupo--aberto'), abrir);
+      secao.cabecalho.setAttribute('aria-expanded', String(abrir));
+    }
+  }
+
+  // Filtra as ações pelo texto (handleBusca)
+  function handleBusca() {
+    const termo = normalizarBusca(el.busca.value);
+    let total = 0;
+    for (const secao of el.secoes) {
+      let visiveis = 0;
+      for (const item of secao.itens) {
+        const corresponde = !termo || item.textoBusca.includes(termo);
+        item.linha.classList.toggle(bloco('oculto'), !corresponde);
+        if (corresponde) visiveis++;
+      }
+      const ocultarSecao = visiveis === 0 || (Boolean(termo) && secao.id === 'favoritos');
+      secao.wrapper.classList.toggle(bloco('oculto'), ocultarSecao);
+      if (!ocultarSecao) total += visiveis;
+    }
+    el.ultima.classList.toggle(bloco('oculto'), Boolean(termo));
+    el.vazio.classList.toggle(bloco('oculto'), total > 0);
+    aplicarEstadoGrupos();
+  }
+
+  // Status da seleção e ações que exigem seleção (atualizarEstadoSelecao)
+  function atualizarSelecao() {
+    const temSelecao = estado.trechoSelecionado.length > 0;
+    const palavras = temSelecao ? estado.trechoSelecionado.split(/\s+/).length : 0;
+    el.selecao.textContent = '';
+    const icone = criar('span', bloco('selecao-icone'));
+    setIcon(icone, temSelecao ? 'text-cursor-input' : 'info');
+    el.selecao.appendChild(icone);
+    el.selecao.appendChild(criar('span', '', temSelecao ? `${palavras} palavra(s) selecionada(s)` : 'Sem seleção: ações de seleção ficam esmaecidas'));
+    el.selecao.classList.toggle(bloco('selecao--ativa'), temSelecao);
+
+    for (const secao of el.secoes) {
+      for (const item of secao.itens) {
+        const indisponivel = item.acao.exigeSelecao && !temSelecao;
+        item.botao.classList.toggle(bloco('acao--indisponivel'), indisponivel);
+        item.botao.setAttribute('aria-disabled', String(indisponivel));
+        item.botao.title = indisponivel ? 'Requer um trecho selecionado' : item.acao.nome;
+      }
+    }
+  }
+
+  function atualizarUltimaAcao() {
+    const acao = estado.ultimaAcaoId ? ACOES_POR_ID[estado.ultimaAcaoId] : null;
+    el.ultima.disabled = !acao;
+    el.ultima.textContent = '';
+    const icone = criar('span', bloco('ultima-icone'));
+    setIcon(icone, 'repeat');
+    el.ultima.appendChild(icone);
+    const textos = criar('span', bloco('ultima-textos'));
+    textos.appendChild(criar('span', bloco('ultima-rotulo'), 'Repetir última ação'));
+    textos.appendChild(criar('span', bloco('ultima-nome'), acao ? acao.nome : 'Nenhuma ação recente'));
+    el.ultima.appendChild(textos);
+  }
+
+  function atualizarDesfazer() {
+    const quantidade = estado.desfazer.length;
+    el.desfazer.classList.toggle(bloco('botao-secundario--inativo'), quantidade === 0);
+    el.desfazer.setAttribute('data-quantidade', quantidade > 0 ? String(quantidade) : '');
+    el.desfazer.setAttribute('aria-label', quantidade > 0 ? `Desfazer última geração (${quantidade} nesta nota)` : 'Desfazer última geração');
+  }
+
+  // ==GERACAO SIMULADA==
+  function executarAcao(acao, instrucao = '') {
+    if (!acao || estado.executando) return;
+    if (acao.exigeSelecao && !estado.trechoSelecionado) {
+      aviso('Selecione um trecho na nota antes de usar esta ação.');
+      return;
+    }
+    // Com o menu fixado, ele continua aberto durante a geração
+    if (!estado.fixado) definirMenuAberto(false);
+    estado.ultimaAcaoId = acao.id;
+    atualizarUltimaAcao();
+    estado.acaoPendente = { acao, instrucao };
+    definirCarregando(true);
+
+    estado.timer = setTimeout(() => {
+      estado.textoGerado = gerarTextoSimulado(acao, instrucao);
+      definirCarregando(false);
+      abrirPreview();
+    }, TEMPO_GERACAO_MS);
+  }
+
+  function cancelarGeracao() {
+    clearTimeout(estado.timer);
+    estado.acaoPendente = null;
+    definirCarregando(false);
+    aviso('Geração interrompida.');
+  }
+
+  function definirCarregando(valor) {
+    estado.executando = valor;
+    el.parar.classList.toggle(bloco('oculto'), !valor);
+    el.botao.classList.toggle(bloco('botao--carregando'), valor);
+    el.botao.disabled = valor;
+    el.botao.setAttribute('aria-busy', String(valor));
+    el.botao.textContent = '';
+    if (!valor) {
+      atualizarBotaoPadrao();
+      return;
+    }
+    el.botao.appendChild(criar('div', bloco('spinner')));
+    el.botao.appendChild(criar('span', bloco('texto'), MODELO));
+  }
+
+  function atualizarBotaoPadrao() {
+    el.botao.textContent = '';
+    el.botao.setAttribute('aria-label', 'Abrir menu da IA');
+    const icone = criar('span', bloco('botao-icone'));
+    setIcon(icone, 'sparkles');
+    el.botao.appendChild(icone);
+    el.botao.appendChild(criar('span', bloco('texto'), 'IA'));
+  }
+
+  function gerarTextoSimulado(acao, instrucao) {
+    const trecho = estado.trechoSelecionado || 'o texto da nota';
+    if (acao.grupo === 'gerar') return `Texto de exemplo no nível ${acao.curto.toLowerCase()}, pronto para revisão.`;
+    if (acao.grupo === 'resumir') return '• Migração de autenticação é prioridade\n• Relatórios entram depois\n• Validar orçamento com o financeiro';
+    if (acao.grupo === 'expandir') return `${trecho} Em seguida, o time deve detalhar os critérios de aceite e o plano de rollback.`;
+    if (acao.grupo === 'explicar') return 'Em outras palavras: o time de infraestrutura precisa terminar uma tarefa antes de começar a seguinte.';
+    if (acao.grupo === 'reescrever') return 'Optamos por priorizar a migração antes da nova tela de relatórios, pois ela libera a infraestrutura para o restante do trimestre.';
+    if (acao.grupo === 'responder') return 'Olá, obrigado pelo retorno. Vamos validar o orçamento com o financeiro até sexta-feira.';
+    return `Resultado para o pedido: ${instrucao || 'sem instrução'}.`;
+  }
+
+  // ==PRE-VISUALIZACAO==
+  function abrirPreview() {
+    const { acao, instrucao } = estado.acaoPendente;
+    document.getElementById('modal-modelo').textContent = MODELO;
+    document.getElementById('modal-acao').textContent = instrucao ? `Pedido: ${instrucao}` : acao.nome;
+    document.getElementById('modal-pedido').value = '';
+    atualizarTextoPreview();
+    modal.hidden = false;
+    setTimeout(() => document.getElementById('modal-texto').focus(), 30);
+  }
+
+  function atualizarTextoPreview() {
+    const area = document.getElementById('modal-texto');
+    area.value = estado.textoGerado;
+    document.getElementById('modal-contador').textContent = `${area.value.length} caracteres`;
+  }
+
+  function fecharPreview() {
+    modal.hidden = true;
+    estado.acaoPendente = null;
+  }
+
+  function inserirNaNota() {
+    const texto = document.getElementById('modal-texto').value.trim();
+    if (!texto) return;
+    const linha = criar('div', 'cm-line inserido', texto);
+    conteudo.appendChild(linha);
+    estado.desfazer.push(linha);
+    atualizarDesfazer();
+    fecharPreview();
+    aviso('Texto inserido na nota.');
+  }
+
+  function desfazerUltima() {
+    const linha = estado.desfazer.pop();
+    if (!linha) { aviso('Nada para desfazer.'); return; }
+    linha.remove();
+    atualizarDesfazer();
+  }
+
+  // ==EVENTOS==
+  function handleTecladoMenu(e) {
+    if (e.target === el.pedido) return;
+    const itens = Array.from(el.menu.querySelectorAll(`.${bloco('ultima')}:not(.${bloco('oculto')}):not(:disabled), .${bloco('acao')}, .${bloco('grupo-titulo')}`))
+      .filter((n) => n.offsetParent !== null);
+    if (itens.length === 0) return;
+    const atual = itens.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const passo = e.key === 'ArrowDown' ? 1 : -1;
+      const proximo = atual === -1 ? (passo === 1 ? 0 : itens.length - 1) : (atual + passo + itens.length) % itens.length;
+      itens[proximo].focus();
+    } else if (e.key === 'Enter' && document.activeElement === el.busca) {
+      e.preventDefault();
+      itens.find((n) => n.classList.contains(bloco('acao')))?.click();
+    }
+  }
+
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (!modal.hidden) { fecharPreview(); return; }
+      if (estado.aberto) { definirMenuAberto(false); el.botao.focus(); }
+    }
+    if (e.ctrlKey && e.key === 'Enter' && !modal.hidden) {
+      e.preventDefault();
+      inserirNaNota();
+    }
+  });
+
+  // Seleção dentro do editor alimenta o "trecho selecionado"
+  document.addEventListener('selectionchange', () => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    if (!containerPai.contains(sel.anchorNode)) return;
+    estado.trechoSelecionado = sel.toString().trim();
+  });
+
+  document.getElementById('modal-cancelar').addEventListener('click', fecharPreview);
+  document.getElementById('modal-inserir').addEventListener('click', inserirNaNota);
+  document.getElementById('modal-regenerar').addEventListener('click', () => {
+    const extra = document.getElementById('modal-pedido').value.trim();
+    const base = estado.acaoPendente;
+    if (!base) return;
+    fecharPreview();
+    executarAcao(base.acao, extra || base.instrucao);
+  });
+  modal.querySelector('.modal-bg').addEventListener('click', fecharPreview);
+
+  document.getElementById('btn-tema').addEventListener('click', () => {
+    const body = document.body;
+    const escuro = body.classList.toggle('theme-dark');
+    body.classList.toggle('theme-light', !escuro);
+  });
+
+  // ==INICIO==
+  criarInterface();
+  el.menu.classList.add(bloco('menu--fechado'));
+  atualizarSelecao();
+})();
+</script>
+</body>
+</html>

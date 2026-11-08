@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configurações — R3 AI Note Assistant</title>
+<!-- CSS oficial do Obsidian (extraído do obsidian.asar instalado) e CSS real do plugin -->
+<link rel="stylesheet" href="vendor/obsidian-app.css">
+<link rel="stylesheet" href="styles.css">
+<style>
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--background-primary); }
+  .modal-container.mod-settings .modal-bg { background: rgba(0, 0, 0, 0.45); }
+  .controles-previa { position: fixed; right: 12px; bottom: 12px; z-index: 95; display: flex; gap: 8px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body class="theme-light">
+
+<div class="modal-container mod-dim">
+  <div class="modal-bg"></div>
+  <div class="modal mod-settings">
+      <div class="vertical-tab-header">
+        <div class="vertical-tab-header-group">
+          <div class="vertical-tab-header-group-title">Plugins da comunidade</div>
+          <div class="vertical-tab-header-group-items">
+            <div class="vertical-tab-nav-item is-active">R3 AI Note Assistant</div>
+          </div>
+        </div>
+      </div>
+    <div class="vertical-tab-content-container">
+      <div class="vertical-tab-content">
+
+        <!-- ===== Idioma (src/settings/secoes/idioma.ts) ===== -->
+        <div class="gemini-assistant-r3-grupo">
+          <div class="setting-item setting-item-heading"><div class="setting-item-info"><div class="setting-item-name">Idioma</div></div></div>
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Idioma global do plugin</div>
+              <div class="setting-item-description">Altera comandos, menu flutuante, configurações, mensagens e prompts padrão.</div>
+            </div>
+            <div class="setting-item-control"><select class="dropdown"><option>🇺🇸 English</option><option selected>🇧🇷 Português-BR</option><option>🇪🇸 Español</option><option>🇫🇷 Français</option><option>🇩🇪 Deutsch</option><option>🇯🇵 日本語</option><option>🇨🇳 简体中文</option></select></div>
+          </div>
+        </div>
+
+        <!-- ===== Configurações do Gemini (src/settings/secoes/geral.ts) ===== -->
+        <div class="gemini-assistant-r3-grupo">
+          <div class="setting-item setting-item-heading"><div class="setting-item-info"><div class="setting-item-name">Configurações do Gemini</div></div></div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Instruções</div>
+              <div class="setting-item-description">Passo a passo para criar a chave gratuita do Gemini e usar o plugin.</div>
+            </div>
+            <div class="setting-item-control">
+              <button>Criar chave da API</button>
+              <button class="mod-cta">Abrir tutorial</button>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Chave da API do Gemini</div>
+              <div class="setting-item-description">A chave é salva sem criptografia no data.json do plugin, dentro do seu vault. Não sincronize nem compartilhe esse arquivo publicamente.</div>
+            </div>
+            <div class="setting-item-control">
+              <input type="password" class="gemini-assistant-r3-campo-chave" placeholder="Cole aqui sua chave da API" value="AIzaSyD-exemplo-nao-real">
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Validar chave e modelo</div>
+              <div class="setting-item-description">Verifica a chave e o modelo principal e, em seguida, mede a velocidade de todos os modelos (usa 6 requisições da cota gratuita).</div>
+            </div>
+            <div class="setting-item-control"><button>Validar agora</button></div>
+          </div>
+        </div>
+
+        <!-- ===== Escrita e conteúdo (src/settings/secoes/escrita.ts) ===== -->
+        <div class="gemini-assistant-r3-grupo">
+          <div class="setting-item setting-item-heading"><div class="setting-item-info"><div class="setting-item-name">Escrita e conteúdo</div></div></div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Objetivo do conteúdo</div>
+              <div class="setting-item-description">Define o foco principal do texto gerado. Em Livre, o plugin não força uma finalidade fixa.</div>
+            </div>
+            <div class="setting-item-control"><select class="dropdown"><option>Livre</option><option selected>Geral</option><option>Estudo</option><option>Profissional</option><option>Técnico</option><option>Apresentação</option></select></div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Perfil de escrita</div>
+              <div class="setting-item-description">Define o tom principal e o grau de adaptação natural usados em geração, resumo, expansão e respostas. Em Livre, o plugin não força um estilo fixo.</div>
+            </div>
+            <div class="setting-item-control"><select class="dropdown"><option>Livre</option><option selected>Natural</option><option>Objetivo</option><option>Didático</option><option>Técnico</option><option>Acadêmico</option><option>Criativo</option></select></div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Temperatura</div>
+              <div class="setting-item-description">Controla criatividade. Use valores entre 0 e 2.</div>
+            </div>
+            <div class="setting-item-control"><input type="text" class="gemini-assistant-r3-campo-numero" value="0.7"></div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Usar streaming real da API</div>
+              <div class="setting-item-description">Quando ativo, o texto começa a aparecer conforme os blocos chegam da API.</div>
+            </div>
+            <div class="setting-item-control"><div class="checkbox-container is-enabled"><input type="checkbox" checked></div></div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Máximo de tokens de saída</div>
+              <div class="setting-item-description">Define o limite por chamada. Se o modelo atingir esse teto, o plugin tenta continuar automaticamente para concluir o conteúdo.</div>
+            </div>
+            <div class="setting-item-control"><input type="text" class="gemini-assistant-r3-campo-numero" value="8192"></div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Incluir contexto da nota inteira</div>
+              <div class="setting-item-description">Lê título, seção atual e trechos próximos para enriquecer respostas relacionadas, expansão e transformação.</div>
+            </div>
+            <div class="setting-item-control"><div class="checkbox-container is-enabled"><input type="checkbox" checked></div></div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Remover título repetido no início da resposta</div>
+              <div class="setting-item-description">Remove automaticamente um cabeçalho inicial idêntico ao nome da nota.</div>
+            </div>
+            <div class="setting-item-control"><div class="checkbox-container is-enabled"><input type="checkbox" checked></div></div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Usar preview antes de inserir</div>
+              <div class="setting-item-description">Quando ativado, mostra o resultado em um modal antes de inserir na nota.</div>
+            </div>
+            <div class="setting-item-control"><div class="checkbox-container"><input type="checkbox"></div></div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Usar faixas de palavras</div>
+              <div class="setting-item-description">Liga as faixas de palavras definidas em cada ação, abaixo. Servem de referência; a resposta nunca é cortada no meio. Nos perfis Natural e Livre, Gerar, Explicar e Expandir ignoram as faixas.</div>
+            </div>
+            <div class="setting-item-control"><div class="checkbox-container"><input type="checkbox"></div></div>
+          </div>
+        </div>
+
+        <!-- ===== Modelos (src/settings/secoes/modelos.ts) ===== -->
+        <div class="gemini-assistant-r3-grupo" id="modelos">
+          <div class="setting-item setting-item-heading"><div class="setting-item-info"><div class="setting-item-name">Modelos</div></div></div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Modelo principal</div>
+              <div class="setting-item-description">Primeira tentativa. Se falhar, o fallback segue para os modelos abaixo dele na lista (do melhor para o pior).</div>
+            </div>
+            <div class="setting-item-control"><select class="dropdown">
+              <option selected>Modelo mais rápido</option>
+              <option>Gemini 3.6 Flash</option>
+              <option>Gemini 3 Flash Preview</option>
+              <option>Gemini 3.5 Flash-Lite</option>
+              <option>Gemini 3.1 Flash-Lite</option>
+              <option>Gemini 2.5 Flash</option>
+            </select></div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Usar fallback automático</div>
+              <div class="setting-item-description">Se o modelo falhar, tenta os seguintes da ordem (por qualidade ou pelo ranking de velocidade). Erros de chave ou de pedido inválido interrompem a sequência.</div>
+            </div>
+            <div class="setting-item-control"><div class="checkbox-container is-enabled"><input type="checkbox" checked></div></div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Ordem do fallback</div>
+              <div class="setting-item-description">Ordem automática (pelo teste de velocidade ou por qualidade).</div>
+            </div>
+            <div class="setting-item-control"><button disabled>Restaurar ordem automática</button></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-item-info"><div class="setting-item-name">1. Gemini 3.6 Flash · principal</div></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-item-info"><div class="setting-item-name">2. Gemini 3 Flash Preview</div></div>
+            <div class="setting-item-control">
+              <button class="clickable-icon" aria-label="Subir" disabled data-icon="arrow-up"></button>
+              <button class="clickable-icon" aria-label="Descer" data-icon="arrow-down"></button>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-item-info"><div class="setting-item-name">3. Gemini 3.5 Flash-Lite</div></div>
+            <div class="setting-item-control">
+              <button class="clickable-icon" aria-label="Subir" data-icon="arrow-up"></button>
+              <button class="clickable-icon" aria-label="Descer" data-icon="arrow-down"></button>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-item-info"><div class="setting-item-name">4. Gemini 3.1 Flash-Lite</div></div>
+            <div class="setting-item-control">
+              <button class="clickable-icon" aria-label="Subir" data-icon="arrow-up"></button>
+              <button class="clickable-icon" aria-label="Descer" data-icon="arrow-down"></button>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-item-info"><div class="setting-item-name">5. Gemini 2.5 Flash</div></div>
+            <div class="setting-item-control">
+              <button class="clickable-icon" aria-label="Subir" data-icon="arrow-up"></button>
+              <button class="clickable-icon" aria-label="Descer" disabled data-icon="arrow-down"></button>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Testar velocidade dos modelos</div>
+              <div class="setting-item-description">Envia uma pergunta curta a cada um dos 5 modelos, um por vez, e mede o tempo de resposta. Usa 5 requisições da sua cota gratuita.</div>
+            </div>
+            <div class="setting-item-control"><button class="mod-cta">Testar todos</button></div>
+          </div>
+
+          <div class="gemini-assistant-r3-velocidade">
+            <div class="gemini-assistant-r3-velocidade__data">Último teste: 04/11/2026 18:42</div>
+            <table class="gemini-assistant-r3-velocidade__tabela">
+              <tr class="gemini-assistant-r3-velocidade__linha--principal">
+                <td class="gemini-assistant-r3-velocidade__posicao">1</td>
+                <td class="gemini-assistant-r3-velocidade__modelo">Gemini 3.6 Flash <span class="gemini-assistant-r3-velocidade__selo">principal</span></td>
+                <td class="gemini-assistant-r3-velocidade__barra-celula"><div class="gemini-assistant-r3-velocidade__barra" style="width:82%"></div></td>
+                <td class="gemini-assistant-r3-velocidade__tempo">0,9 s</td>
+              </tr>
+              <tr>
+                <td class="gemini-assistant-r3-velocidade__posicao">2</td>
+                <td class="gemini-assistant-r3-velocidade__modelo">Gemini 3 Flash Preview</td>
+                <td class="gemini-assistant-r3-velocidade__barra-celula"><div class="gemini-assistant-r3-velocidade__barra" style="width:46%"></div></td>
+                <td class="gemini-assistant-r3-velocidade__tempo">2,4 s</td>
+              </tr>
+              <tr class="gemini-assistant-r3-velocidade__linha--falha">
+                <td class="gemini-assistant-r3-velocidade__posicao">—</td>
+                <td class="gemini-assistant-r3-velocidade__modelo">Gemini 2.5 Flash</td>
+                <td class="gemini-assistant-r3-velocidade__barra-celula"></td>
+                <td class="gemini-assistant-r3-velocidade__tempo">falhou (429)</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Modelos pausados</div>
+              <div class="setting-item-description">Nenhum modelo pausado. Quando um modelo falha por limite de uso (429), sobrecarga (5xx) ou falta de acesso (403/404), ele é pulado por um tempo e o próximo da lista assume.</div>
+            </div>
+            <div class="setting-item-control"><button disabled>Liberar todos</button></div>
+          </div>
+        </div>
+
+        <!-- ===== Estilo da resposta (src/settings/secoes/formatacao.ts) ===== -->
+        <div class="gemini-assistant-r3-grupo">
+          <div class="setting-item setting-item-heading"><div class="setting-item-info"><div class="setting-item-name">Estilo da resposta</div></div></div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Estilo da resposta</div>
+              <div class="setting-item-description">Rico usa elementos visuais sempre que ajudarem; Equilibrado só quando melhoram a leitura; Simples escreve em texto corrido. Mudar um item em Avançado troca para Personalizado.</div>
+            </div>
+            <div class="setting-item-control"><select class="dropdown"><option>Rico</option><option selected>Equilibrado</option><option>Simples</option><option>Personalizado</option></select></div>
+          </div>
+
+          <div class="setting-item setting-item-heading"><div class="setting-item-info"><div class="setting-item-name">Avançado</div></div></div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Tabelas</div>
+              <div class="setting-item-description">Para comparar itens ou mostrar dados tabulares.</div>
+            </div>
+            <div class="setting-item-control"><div class="checkbox-container is-enabled"><input type="checkbox" checked></div></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Listas e tópicos</div>
+              <div class="setting-item-description">Para passos e itens independentes. Também define o formato de Resumir (linha-resumo + tópicos).</div>
+            </div>
+            <div class="setting-item-control"><div class="checkbox-container is-enabled"><input type="checkbox" checked></div></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Títulos</div>
+              <div class="setting-item-description">Só no nível Expandido (## e ###), nunca repetindo o título da nota.</div>
+            </div>
+            <div class="setting-item-control"><div class="checkbox-container"><input type="checkbox"></div></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Callouts</div>
+              <div class="setting-item-description">&gt; [!tip], &gt; [!warning] e &gt; [!example] só para dica, alerta ou exemplo real.</div>
+            </div>
+            <div class="setting-item-control"><div class="checkbox-container is-enabled"><input type="checkbox" checked></div></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Diagramas Mermaid</div>
+              <div class="setting-item-description">Fluxograma, sequência, linha do tempo e mapa mental quando houver processo, hierarquia ou cronologia.</div>
+            </div>
+            <div class="setting-item-control"><div class="checkbox-container"><input type="checkbox"></div></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Gráficos simples</div>
+              <div class="setting-item-description">Pizza, quadrante e barras/linhas (xychart). O que o Mermaid do Obsidian não aceitar vira tabela.</div>
+            </div>
+            <div class="setting-item-control"><div class="checkbox-container"><input type="checkbox"></div></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Fórmulas LaTeX</div>
+              <div class="setting-item-description">$...$ e $$...$$ em matemática, física e química.</div>
+            </div>
+            <div class="setting-item-control"><div class="checkbox-container"><input type="checkbox"></div></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Negrito em termos-chave</div>
+              <div class="setting-item-description">Destaque moderado com **negrito**.</div>
+            </div>
+            <div class="setting-item-control"><div class="checkbox-container is-enabled"><input type="checkbox" checked></div></div>
+          </div>
+        </div>
+
+        <!-- ===== Ações da IA (src/settings/secoes/acoes.ts) ===== -->
+        <div class="gemini-assistant-r3-grupo" id="acoes">
+          <div class="setting-item setting-item-heading"><div class="setting-item-info"><div class="setting-item-name">CONFIGURAÇÕES DA I.A.</div></div></div>
+          <div class="gemini-assistant-r3-config-intro">
+            <p>Cada ação tem seu prompt, onde o texto entra na nota e a faixa de palavras de cada nível. O ícone de engrenagem no menu da IA abre direto a ação.</p>
+          </div>
+
+          <div class="gemini-assistant-r3-abas-acoes" role="tablist">
+            <button class="gemini-assistant-r3-aba-acao gemini-assistant-r3-aba-acao--ativa" role="tab" aria-selected="true">Gerar</button>
+            <button class="gemini-assistant-r3-aba-acao" role="tab" aria-selected="false">Resumir</button>
+            <button class="gemini-assistant-r3-aba-acao" role="tab" aria-selected="false">Explicar</button>
+            <button class="gemini-assistant-r3-aba-acao" role="tab" aria-selected="false">Expandir</button>
+            <button class="gemini-assistant-r3-aba-acao" role="tab" aria-selected="false">Reescrever</button>
+            <button class="gemini-assistant-r3-aba-acao" role="tab" aria-selected="false">Corrigir gramática</button>
+            <button class="gemini-assistant-r3-aba-acao" role="tab" aria-selected="false">Responder</button>
+            <button class="gemini-assistant-r3-aba-acao" role="tab" aria-selected="false">Pedido livre</button>
+          </div>
+
+          <div class="gemini-assistant-r3-config-acao">
+            <p class="setting-item-description gemini-assistant-r3-acao-descricao">Escreve sobre o título da nota.</p>
+
+            <div class="gemini-assistant-r3-prompt-amplo">
+              <div class="gemini-assistant-r3-prompt-amplo__nome">Prompt</div>
+              <div class="setting-item-description">Template da ação. O nível e as regras de formato entram automaticamente. Variáveis: {TITLE}, {SELECT}, {FAIXA_PALAVRAS}, {PERFIL_ESCRITA}, {CONTEXTO_NOTA}, {INSTRUCAO}, {NIVEL}.</div>
+              <textarea class="gemini-assistant-r3-textarea-prompt">Escreva um texto sobre o título da nota, em português do Brasil, seguindo o perfil de escrita configurado.
+
+Título: {TITLE}</textarea>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-item-info">
+                <div class="setting-item-name">Atalho (nível padrão)</div>
+                <div class="setting-item-description">Executa o nível Padrão desta intenção, com o foco no editor. Use Ctrl, Alt ou Cmd (ex.: Ctrl+Alt+1). Os outros níveis podem receber atalho em Configurações → Teclas de atalho.</div>
+              </div>
+              <div class="setting-item-control"><input type="text" placeholder="Ex.: Ctrl+Alt+1"></div>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-item-info">
+                <div class="setting-item-name">Onde inserir</div>
+                <div class="setting-item-description">Onde o texto gerado entra na nota.</div>
+              </div>
+              <div class="setting-item-control"><select class="dropdown"><option selected>No fim da nota</option><option>Substituir seleção</option><option>Na linha de baixo</option></select></div>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-item-info">
+                <div class="setting-item-name">Resumido</div>
+                <div class="setting-item-description">Palavras: mínimo e máximo.</div>
+              </div>
+              <div class="setting-item-control">
+                <input type="number" class="gemini-assistant-r3-campo-numero" placeholder="Mínimo" value="150">
+                <input type="number" class="gemini-assistant-r3-campo-numero" placeholder="Máximo" value="300">
+              </div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-item-info">
+                <div class="setting-item-name">Padrão</div>
+                <div class="setting-item-description">Palavras: mínimo e máximo.</div>
+              </div>
+              <div class="setting-item-control">
+                <input type="number" class="gemini-assistant-r3-campo-numero" placeholder="Mínimo" value="400">
+                <input type="number" class="gemini-assistant-r3-campo-numero" placeholder="Máximo" value="700">
+              </div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-item-info">
+                <div class="setting-item-name">Expandido</div>
+                <div class="setting-item-description">Palavras: mínimo e máximo.</div>
+              </div>
+              <div class="setting-item-control">
+                <input type="number" class="gemini-assistant-r3-campo-numero" placeholder="Mínimo" value="900">
+                <input type="number" class="gemini-assistant-r3-campo-numero" placeholder="Máximo" value="1500">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== Botão flutuante e menus (src/settings/secoes/menu.ts) ===== -->
+        <div class="gemini-assistant-r3-grupo">
+          <div class="setting-item setting-item-heading"><div class="setting-item-info"><div class="setting-item-name">Botão flutuante e menus</div></div></div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Posição do botão flutuante</div>
+              <div class="setting-item-description">Escolha em qual lado da nota o botão flutuante aparece.</div>
+            </div>
+            <div class="setting-item-control"><select class="dropdown"><option selected>Esquerda</option><option>Direita</option></select></div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Tamanho do botão flutuante</div>
+              <div class="setting-item-description">Define o tamanho visual do botão principal da IA.</div>
+            </div>
+            <div class="setting-item-control"><select class="dropdown"><option>Compacto</option><option selected>Médio</option><option>Grande</option></select></div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Exibir texto IA no botão</div>
+              <div class="setting-item-description">Mostra ou oculta o texto IA ao lado do ícone do botão flutuante.</div>
+            </div>
+            <div class="setting-item-control"><div class="checkbox-container is-enabled"><input type="checkbox" checked></div></div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Mostrar indicador do modelo ativo</div>
+              <div class="setting-item-description">Mostra o modelo em uso durante a geração no botão flutuante e nas notices.</div>
+            </div>
+            <div class="setting-item-control"><div class="checkbox-container is-enabled"><input type="checkbox" checked></div></div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Grupo aberto ao abrir o menu</div>
+              <div class="setting-item-description">Qual grupo do menu da IA já aparece expandido.</div>
+            </div>
+            <div class="setting-item-control"><select class="dropdown"><option>Nenhum (todos fechados)</option><option selected>Último grupo usado</option><option>Gerar</option><option>Resumir</option><option>Expandir</option><option>Explicar</option><option>Reescrever</option><option>Responder</option><option>Outros</option></select></div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Ações no clique direito</div>
+              <div class="setting-item-description">Mostra paleta, última ação, favoritos e desfazer no menu de contexto do editor.</div>
+            </div>
+            <div class="setting-item-control"><div class="checkbox-container is-enabled"><input type="checkbox" checked></div></div>
+          </div>
+        </div>
+
+        <!-- ===== Presets e restauração (src/settings/secoes/utilitarios.ts) ===== -->
+        <div class="gemini-assistant-r3-grupo">
+          <div class="setting-item setting-item-heading"><div class="setting-item-info"><div class="setting-item-name">Presets e restauração</div></div></div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Salvar preset do idioma atual</div>
+              <div class="setting-item-description">Guarda seus prompts atuais para o idioma global selecionado.</div>
+            </div>
+            <div class="setting-item-control"><button>Salvar preset</button></div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Restaurar prompts do idioma atual</div>
+              <div class="setting-item-description">Sobrescreve todos os prompts personalizados usando o pacote padrão do idioma selecionado.</div>
+            </div>
+            <div class="setting-item-control"><button>Restaurar prompts</button></div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <div class="setting-item-name">Restaurar faixas de palavras</div>
+              <div class="setting-item-description">Volta as faixas de todas as ações para os valores padrão.</div>
+            </div>
+            <div class="setting-item-control"><button>Restaurar faixas</button></div>
+          </div>
+
+          <div class="setting-item-description gemini-assistant-r3-config-nota">Cada prompt aceita um atalho próprio (abaixo de cada template), que só funciona com o foco no editor e precisa de Ctrl, Alt ou Cmd. Todas as ações também podem receber atalhos nativos em Configurações → Teclas de atalho, buscando por "Gemini".</div>
+        </div>
+
+        <!-- ===== Sobre o projeto / apoio (src/settings/secoes/apoio.ts) ===== -->
+        <div class="gemini-assistant-r3-grupo" id="apoio">
+          <div class="setting-item setting-item-heading"><div class="setting-item-info"><div class="setting-item-name">Sobre o projeto</div></div></div>
+          <div class="gemini-assistant-r3-tutorial__sobre">
+            <p>Este plugin é um projeto de estudo criado por Marcos (r3vmarcos) para ajudar a comunidade a desenvolver seus projetos e pesquisas.</p>
+            <div class="gemini-assistant-r3-tutorial__contato">
+              <span class="gemini-assistant-r3-tutorial__rotulo">GitHub</span>
+              <a href="https://github.com/r3vmarcos" target="_blank" rel="noopener">github.com/r3vmarcos</a>
+            </div>
+            <div class="gemini-assistant-r3-tutorial__contato">
+              <span class="gemini-assistant-r3-tutorial__rotulo">Sugestões</span>
+              <a class="gemini-assistant-r3-tutorial__valor" href="mailto:r3vmarcos@gmail.com">r3vmarcos@gmail.com</a>
+            </div>
+            <div class="gemini-assistant-r3-tutorial__apoio-bloco">
+              <div class="gemini-assistant-r3-tutorial__contato">
+                <span class="gemini-assistant-r3-tutorial__rotulo">Buy Me a Coffee</span>
+                <a href="https://buymeacoffee.com/r3vmarcos" target="_blank" rel="noopener">buymeacoffee.com/r3vmarcos</a>
+              </div>
+              <p class="gemini-assistant-r3-tutorial__apoio">Quem quiser apoiar o criador pode contribuir com qualquer valor pelo Pix.</p>
+              <div class="gemini-assistant-r3-tutorial__contato">
+                <span class="gemini-assistant-r3-tutorial__rotulo">Chave Pix</span>
+                <span class="gemini-assistant-r3-tutorial__valor gemini-assistant-r3-tutorial__valor--mono">319a4a14-7a65-4f0f-9439-a6c556b64557</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="controles-previa">
+  <button id="btn-tema">Tema claro/escuro</button>
+</div>
+
+<script>
+  // Ícones Lucide (mesmo conjunto do setIcon do Obsidian)
+  const LUCIDE_URL = 'https://unpkg.com/lucide-static@0.460.0/icons/';
+  document.querySelectorAll('[data-icon]').forEach((botao) => {
+    fetch(LUCIDE_URL + botao.dataset.icon + '.svg')
+      .then((r) => (r.ok ? r.text() : ''))
+      .then((svg) => { if (svg) botao.innerHTML = svg.replace('<svg ', '<svg class="svg-icon" '); });
+  });
+
+  // Tema claro/escuro (Obsidian usa as classes theme-light / theme-dark no body)
+  document.getElementById('btn-tema').addEventListener('click', () => {
+    const escuro = document.body.classList.toggle('theme-dark');
+    document.body.classList.toggle('theme-light', !escuro);
+  });
+
+  // Abas de ações: troca a aba ativa (como abaixo de definirAbaAtiva)
+  const abas = Array.from(document.querySelectorAll('.gemini-assistant-r3-aba-acao'));
+  abas.forEach((aba) => aba.addEventListener('click', () => {
+    abas.forEach((a) => {
+      const ativa = a === aba;
+      a.classList.toggle('gemini-assistant-r3-aba-acao--ativa', ativa);
+      a.setAttribute('aria-selected', String(ativa));
+    });
+  }));
+</script>
+</body>
+</html>
