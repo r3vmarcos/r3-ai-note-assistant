@@ -70,6 +70,7 @@ Generate, summarize, explain, expand, rewrite, translate and answer text right i
   - when you run the model speed test, and automatically in the background every 5 generations, with a short test prompt and **no note content**.
 - Your API key is stored **unencrypted** in `<vault>/.obsidian/plugins/ai-note-assistant/data.json`. Do not publish that file, and be careful when syncing your vault to public places.
 - No telemetry, no analytics, no third-party services besides the Gemini API.
+- The plugin only **writes** to the clipboard when you click a copy button (Pix key or e-mail in **About the project**). It never reads the clipboard.
 - Use of the Gemini API is subject to [Google's terms](https://ai.google.dev/gemini-api/terms). The free plan has daily limits.
 
 ## About

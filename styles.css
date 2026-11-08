@@ -46,8 +46,9 @@
   align-items: flex-end;
 }
 
-.gemini-assistant-r3-flutuante .gemini-assistant-r3-flutuante__oculto {
-  display: none !important;
+/* Classe repetida: vence as regras de exibição dos componentes sem forçar prioridade */
+.gemini-assistant-r3-flutuante .gemini-assistant-r3-flutuante__oculto.gemini-assistant-r3-flutuante__oculto {
+  display: none;
 }
 
 /* ==section== Barra: botão principal + secundários */
@@ -874,10 +875,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-.gemini-assistant-r3-flutuante *,
-.gemini-assistant-r3-flutuante .gemini-assistant-r3-flutuante__menu {
-    animation: none !important;
-    transition: none !important;
+.gemini-assistant-r3-flutuante.gemini-assistant-r3-flutuante *,
+.gemini-assistant-r3-flutuante.gemini-assistant-r3-flutuante .gemini-assistant-r3-flutuante__menu {
+    animation: none;
+    transition: none;
   }
 }
 
@@ -896,8 +897,8 @@
 /* === BOTAO FLUTUANTE E MENU (v4.3.0) | fim === */
 
 /* === CONFIGURACOES | inicio === */
-.gemini-assistant-r3-campo-invalido {
-  border-color: var(--text-error) !important;
+.setting-item input.gemini-assistant-r3-campo-invalido.gemini-assistant-r3-campo-invalido {
+  border-color: var(--text-error);
   box-shadow: 0 0 0 1px var(--text-error);
 }
 /* === CONFIGURACOES | fim === */

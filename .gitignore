@@ -23,3 +23,8 @@ data.json
 
 # Pacotes locais de instalação (os arquivos vão para o GitHub Release)
 release/
+
+# Cópia local do CSS do Obsidian e páginas de pré-visualização (uso só no desenvolvimento; o CSS do Obsidian não pode ser redistribuído)
+vendor/
+preview.html
+preview-configuracoes.html
