@@ -1692,3 +1692,25 @@
 .gemini-assistant-r3-flutuante .gemini-assistant-r3-flutuante__menu.gemini-assistant-r3-flutuante__menu--posicionado {
   position: fixed;
 }
+
+/* ==section== Celular: abas das ações com rolagem horizontal e botão IA um pouco mais abaixo */
+.is-mobile .gemini-assistant-r3-abas-acoes {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.is-mobile .gemini-assistant-r3-abas-acoes::-webkit-scrollbar {
+  display: none;
+}
+
+.is-mobile .gemini-assistant-r3-abas-acoes .gemini-assistant-r3-aba-acao {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 6px 12px;
+  overflow: visible;
+}
+
+.is-mobile .gemini-assistant-r3-flutuante:not(.gemini-assistant-r3-flutuante--portal) {
+  top: 96px;
+}

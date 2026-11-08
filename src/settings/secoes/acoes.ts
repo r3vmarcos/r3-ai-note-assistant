@@ -95,6 +95,13 @@ export function criarSecoesAcoes(containerEl: HTMLElement, ctx: ContextoAba): vo
       });
     }
 
+    // No celular a barra rola na horizontal: mantém a aba selecionada visível depois de redesenhar
+    const botaoAtivo = barraEl.querySelector<HTMLElement>('.gemini-assistant-r3-aba-acao--ativa');
+    if (botaoAtivo) {
+      const deslocamento = botaoAtivo.getBoundingClientRect().left - barraEl.getBoundingClientRect().left;
+      barraEl.scrollLeft = deslocamento - (barraEl.clientWidth - botaoAtivo.offsetWidth) / 2;
+    }
+
     const secaoAtiva = SECOES_ACOES.find((secao) => secao.id === abaAtiva) ?? SECOES_ACOES[0];
     if (secaoAtiva) {
       criarConteudoAcao(conteudoEl, ctx, secaoAtiva);
