@@ -1,7 +1,7 @@
 {
   "id": "ai-note-assistant",
   "name": "R3 AI Note Assistant",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "minAppVersion": "1.8.7",
   "description": "Generate, summarize, expand, rewrite, translate and answer note content with AI (Google Gemini, free API key), featuring streaming, preview, model fallback and a floating actions menu.",
   "author": "r3vmarcos",
