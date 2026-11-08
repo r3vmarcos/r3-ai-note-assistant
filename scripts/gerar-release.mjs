@@ -5,7 +5,7 @@ import { join } from 'node:path';
 const ARQUIVOS = ['main.js', 'manifest.json', 'styles.css', 'README.md'];
 // Campos com dados pessoais que nunca vão para o pacote (a chave de API fica só no vault de quem usa)
 const CAMPOS_PRIVADOS = ['apiKey'];
-const destino = join('release', 'r3-ai-note-assistant');
+const destino = join('release', 'ai-note-assistant');
 
 mkdirSync(destino, { recursive: true });
 const agora = new Date();

@@ -68,7 +68,7 @@ Generate, summarize, explain, expand, rewrite, translate and answer text right i
 - This plugin sends requests to the **Google Gemini API** (`generativelanguage.googleapis.com`). Requests are sent:
   - when you run an action, with the prompt built from the note title, the selected text (or the whole note body, for actions run without a selection) and, if **Include whole-note context** is on, the text around the selection and the start of the note;
   - when you run the model speed test, and automatically in the background every 5 generations, with a short test prompt and **no note content**.
-- Your API key is stored **unencrypted** in `<vault>/.obsidian/plugins/r3-ai-note-assistant/data.json`. Do not publish that file, and be careful when syncing your vault to public places.
+- Your API key is stored **unencrypted** in `<vault>/.obsidian/plugins/ai-note-assistant/data.json`. Do not publish that file, and be careful when syncing your vault to public places.
 - No telemetry, no analytics, no third-party services besides the Gemini API.
 - Use of the Gemini API is subject to [Google's terms](https://ai.google.dev/gemini-api/terms). The free plan has daily limits.
 
@@ -118,7 +118,7 @@ npm run release  # build + copy the plugin files to release/ (data.json without 
 npm run lint
 ```
 
-To test locally, copy `main.js`, `manifest.json` and `styles.css` to `<vault>/.obsidian/plugins/r3-ai-note-assistant/`.
+To test locally, copy `main.js`, `manifest.json` and `styles.css` to `<vault>/.obsidian/plugins/ai-note-assistant/`.
 
 ## License
 

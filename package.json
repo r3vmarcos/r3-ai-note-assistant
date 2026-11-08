@@ -1,5 +1,5 @@
 {
-  "name": "r3-ai-note-assistant",
+  "name": "ai-note-assistant",
   "version": "1.0.0",
   "description": "Generate, summarize, expand, rewrite, translate and answer note content with AI (Google Gemini, free API key), featuring streaming, preview, model fallback and a floating actions menu.",
   "main": "main.js",
