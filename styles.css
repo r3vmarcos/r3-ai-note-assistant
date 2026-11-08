@@ -1693,7 +1693,7 @@
   position: fixed;
 }
 
-/* ==section== Celular: abas das ações com rolagem horizontal e botão IA um pouco mais abaixo */
+/* ==section== Celular: abas das ações com rolagem horizontal e botão IA na metade da tela */
 .is-mobile .gemini-assistant-r3-abas-acoes {
   overflow-x: auto;
   scrollbar-width: none;
@@ -1712,5 +1712,5 @@
 }
 
 .is-mobile .gemini-assistant-r3-flutuante:not(.gemini-assistant-r3-flutuante--portal) {
-  top: 96px;
+  top: 50%;
 }

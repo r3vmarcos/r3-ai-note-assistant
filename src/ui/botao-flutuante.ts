@@ -1,4 +1,4 @@
-import { MarkdownView, setIcon } from 'obsidian';
+import { MarkdownView, Platform, setIcon } from 'obsidian';
 
 import type GeminiAssistantR3Plugin from '../main';
 import {
@@ -1150,7 +1150,8 @@ export class GerenciadorBotaoFlutuante {
     this.atualizarDicasGrupos();
     this.aplicarGeometriaMenu();
     // Com seleção ativa, o foco fica no editor para a seleção continuar visível na nota
-    if (!this.selecaoAoAbrir) {
+    // No celular também não foca a busca, para não abrir o teclado sozinho
+    if (!this.selecaoAoAbrir && !Platform.isMobile) {
       window.setTimeout(() => this.buscaEl?.focus({ preventScroll: true }), 30);
     }
   }
